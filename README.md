@@ -1,22 +1,16 @@
 # docker-php-fpm
 
-[![Drone (cloud)](https://img.shields.io/drone/build/jee-r/docker-php-fpm?&style=flat-square)](https://cloud.drone.io/jee-r/docker-php-fpm)
-[![Docker Image Size (latest by date)](https://img.shields.io/docker/image-size/j33r/php-fpm?style=flat-square)](https://microbadger.com/images/j33r/php-fpm)
-[![MicroBadger Layers](https://img.shields.io/microbadger/layers/j33r/php-fpm?style=flat-square)](https://microbadger.com/images/j33r/php-fpm)
 [![Docker Pulls](https://img.shields.io/docker/pulls/j33r/php-fpm?style=flat-square)](https://hub.docker.com/r/j33r/php-fpm)
 [![DockerHub](https://shields.io/badge/Dockerhub-j33r/php%E2%88%92fpm-%232496ED?logo=docker&style=flat-square)](https://hub.docker.com/r/j33r/php-fpm)
 
-A docker image for [php-fpm](https://php.net/) based on [Alpine Linux](https://alinelinux.org) and **[without root process](https://docs.docker.com/develop/develop-images/dockerfile_best-practices/#user)**
-
+A docker image for [php-fpm](https://php.net/) based on [PHP official docker images 7-fpm-Alpine](https://hub.docker.com/_/php/)
 
 # Supported tags
 
-| Tags | Alpine | Php | Size | Layers |
-|-|-|-|-|-|
-| `latest`, `stable`, `master` | 3.12 | 7.3 | ![](https://img.shields.io/docker/image-size/j33r/php-fpm/latest?style=flat-square) | ![MicroBadger Layers (tag)](https://img.shields.io/microbadger/layers/j33r/php-fpm/latest?style=flat-square) |
-| `dev` | 3.12 | 7.3 | ![](https://img.shields.io/docker/image-size/j33r/php-fpm/dev?style=flat-square) | ![MicroBadger Layers (tag)](https://img.shields.io/microbadger/layers/j33r/php-fpm/dev?style=flat-square) |
-| `composer` | 3.12 | 7.3 | ![](https://img.shields.io/docker/image-size/j33r/php-fpm/composer?style=flat-square) | ![MicroBadger Layers (tag)](https://img.shields.io/microbadger/layers/j33r/php-fpm/composer?style=flat-square) |
-| `symfony` | 3.12 | 7.3 | ![](https://img.shields.io/docker/image-size/j33r/php-fpm/symfony?style=flat-square) | ![MicroBadger Layers (tag)](https://img.shields.io/microbadger/layers/j33r/php-fpm/symfony?style=flat-square) |
+| Tags | Size | Build Status |
+|-|-|-|
+| `latest`, `stable`, `master` | ![](https://img.shields.io/docker/image-size/j33r/php-fpm/latest?style=flat-square) | [![Drone (cloud) master build](https://img.shields.io/drone/build/jee-r/docker-php-fpm?label=latest&style=flat-square)](https://cloud.drone.io/jee-r/docker-php-fpm) |
+| `dev` | ![](https://img.shields.io/docker/image-size/j33r/php-fpm/dev?style=flat-square) | [![Drone (cloud) dev build](https://img.shields.io/drone/build/jee-r/docker-php-fpm?label=dev&style=flat-square)](https://cloud.drone.io/jee-r/docker-php-fpm) |
 
 # What is PHP-FPM?
 
@@ -25,19 +19,28 @@ From [php.net](https://php.net):
 >   PHP is a popular general-purpose scripting language that is especially suited to web development.
 >   Fast, flexible and pragmatic, PHP powers everything from your blog to the most popular websites in the world.
 
-
 # How to use these images
+
+All the lines commented in the examples below should be adapted to your environment. 
+
+Note: `--user $(id -u):$(id -g)` should work out of the box on linux systems. If your docker host run on windows or if you want specify an other user id and group id just replace with the appropriates values.
 
 ```bash
 docker run \
     --detach \
     --interactive \
     --name php-fpm \
-    --user $(id -u):$(id -g)
-    --env TZ=Europe/Paris
-    --volume /etc/localtime:/etc/localtime:ro
+    #--user $(id -u):$(id -g) \
+    #--env TZ=Europe/Paris
+    #--volume /path/to/your/php-fpm.conf:/etc/php7/php-fpm.conf \
+    #--volume /path/to/your/php.ini:/etc/php7/conf.d/00_custom.ini \
+    #--volume /path/to/your/app:/app \
+    #--volume php:/php \
+    #--volume /etc/localtime:/etc/localtime:ro \
     j33r/php-fpm:latest
-```    
+```
+
+See also the [Docker Compose section](#Docker-Compose-LEMP).
 
 ## Volume mounts
 
@@ -47,21 +50,6 @@ docker run \
 - `/app/phpinfo.php` instead of running an application you can mount this file to get [php info](https://www.php.net/manual/en/function.phpinfo.php)
 - `/php` the directory where php store the php-fpm.[pid](https://www.php.net/manual/en/install.fpm.configuration.php) and php-fpm.[socket](https://www.php.net/manual/en/install.fpm.configuration.php) files it's virtual volume so you can share it between container.
 
-
-```bash
-docker run \
-    --detach \
-    --interactive \
-    --name php-fpm \
-    --user $(id -u):$(id -g) \
-    --volume /path/to/your/php-fpm.conf:/etc/php7/php-fpm.conf \
-    --volume /path/to/your/php.ini:/etc/php7/conf.d/00_custom.ini \
-    --volume /path/to/your/app:/app \
-    --volume php:/php \
-    --volume /etc/localtime:/etc/localtime:ro \
-    j33r/php-fpm:latest
-```
-
 You should create directory before run the container otherwise directories are created by the docker deamon and owned by the root user
 
 ## Environment variables
@@ -70,19 +58,32 @@ To change the timezone of the container set the `TZ` environment variable. The f
 
 You can also set the `HOME` environment variable this is usefull to get in the right directory when you attach a shell in your docker container.
 
-## Php Extension
+## PHP Modules
 
-| Tags | Php-Extensions | Packages Managers | Frameworks | Additional packages |
-|-|-|-|-|-|
-| `latest`, `stable`, `master` | `fpm`, `curl`, `gmp`, `intl`, `mbstring`, `xml`, `zip`, `ctype`, `dom`, `fileinfo`, `iconv`, `gd`, `json`, `opcache`, `phar`, `session`, `simplexml`, `xmlreader`, `xmlwriter`, `tokenizer`, `zlib`, `mysqli `, `pdo_sqlit`, `pdo_mysql`, `pdo_pgsql` | |
-| `dev` | same as master | | | |
-| `composer`  | same as master | `composer` | | |
-| `symfony` | same as master | `composer`, `npm`, `yarn` | `symfony` | `Node.js` |
+### Available Php modules :
+
+`Core`, `ctype`, `curl`, `date`, `dom`, `fileinfo`, `filter`, `ftp`, `gmp`, `hash`, `iconv`, `intl`, `json`, `libxml`, `mbstring`, `mysqli`, `mysqlnd`, `openssl`, `pcre`, `PDO`, `pdo_mysql`, `pdo_pgsql`, `pdo_sqlite`, `Phar`, `posix`, `readline`, `Reflection`, `session`, `SimpleXML`, `sodium`, `SPL`, `sqlite3`, `standard`, `tokenizer`, `xml`, `xmlreader`, `xmlwriter`, `OPcache`, `zip`, `zlib`
+
+### How install additionnal module :
+
+if your php project need additionnals modules, easiest method is to use the tool [docker-php-extension-installer](https://github.com/mlocati/docker-php-extension-installer) which is installed by default in this image. 
+
+```
+docker exec -it my_php_app /usr/local/bin/docker-php-extension-installer gd 
+```
+
+or by writing you own `Dockerfile`: 
+
+```
+FROM j33r/php-fpm:latest
+
+RUN /usr/local/bin/docker-php-extension-installer gd
+```
 
 ## Socket vs port
 
-By default this image use `socket` protocol to bind `php-fpm` to a web-server ([apache](https://apache.org), [nginx](https://apache.org/)...). Socket file path is accessible on `/php/php-fpm.socket`
-If you want use tcp protocol instead i need to overwrite `listen` value in [php-fpm.conf](https://www.php.net/manual/en/install.fpm.configuration.php) to `listen = 0.0.0.0:9000`
+By default   [PHP official docker images](https://hub.docker.com/_/php/) use `tcp` protocol to bind `php-fpm` to a web-server ([apache](https://apache.org), [nginx](https://apache.org/)...). Socket file path is accessible on `/php/php-fpm.socket`
+If you want use `socket` protocol instead you need to overwrite `listen` value in [php-fpm.conf](https://www.php.net/manual/en/install.fpm.configuration.php) to `listen = /php/php-fpm.sock`
 
 ## Logs
 
@@ -211,7 +212,7 @@ git push origin dev
 
 * And finaly [open a pull request](https://github.com/jee-r/docker-php-fpm/compare) comparing your dev branch with mine
 
-If you find a vulnerability please contact me by mail  
+If you find a vulnerability please contact me by mail
 
 # License
 
